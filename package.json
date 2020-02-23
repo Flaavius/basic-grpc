@@ -1,0 +1,25 @@
+{
+  "name": "simple-grpc",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": {
+    "email": "flaav12@gmail.com",
+    "name": "Flavius Lacatusu",
+    "url": "https://github.com/Flaavius/simple-grpc"
+  },
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^13.7.1",
+    "ts-node": "^8.6.2",
+    "typescript": "^3.7.5"
+  },
+  "dependencies": {
+    "@grpc/proto-loader": "^0.5.3",
+    "grpc": "^1.24.2"
+  }
+}
