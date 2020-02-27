@@ -50,69 +50,10 @@
   ### Create a service
   *_grpcServer.ts_*
   ```typescript
-    import { 
-      createServer, 
-      ISetup,
-      IProtoService, 
-      RPCError 
-    } from "simple-grpc";
+import { createClient, createClientCreds } from "simple-grpc";
+import { ILogin } from "../protos/login";
+import { join } from "path";
 
-    import { join } from "path";
-    import { ILogin } from "../protos/login";
-
-    const loginService: IProtoService<ILogin> = {
-      protoFile: "login.proto", // the .proto fileName
-      packageName: "login", // packageName (what is defined in the .proto file as package)
-      serviceName: "Login",  // serviceName (what is defined in the .proto file as Service)
-      handlers: { // the function handlers for every rpc call
-        login: async ({ username, password }) => {
-          if(password === "awesomeSecretPassword") 
-            return  {
-              token: generateToken(username)
-            }; 
-          throw new RPCError(22, "Invalid Credentials");
-        }
-      },
-    };
-
-    const gRPCSetup: ISetup = {
-      protoRoot: join(__dirname, "..", "protos"), // root folder where all your .proto files live
-      services: [ // a list of services for this particular server
-        loginService
-      ]
-    };
-
-    // options for the protoloader
-    const protoLoaderOptions = {
-      keepCase: true,
-      longs: String,
-      enums: String,
-      defaults: true,
-      oneofs: true
-    };
-
-    // the host of your gRPC server
-    const domain = "localhost:50051";
-
-    // accepts and array (truple) [ rootCerts, cert_chain, private_key ] 
-    // or it can create an insecure connection if nothing is passed
-    const credentials = createServerCreds();
-
-    // returns a gRPC server instance 
-    const server = createServer({
-      gRPCSetup,
-      domain,
-      options: protoLoaderOptions, // if not passed it will use the default values
-      credentials, // if not passed it will create an insecure connection
-    });
-    
-    // starts the server :)
-    server.start();
-    console.log("Server Started");
-  ```
-
-  ### Client: 
-  ```typescript
   const protoLoaderOptions = {
     keepCase: true,
     longs: String,
@@ -120,7 +61,6 @@
     defaults: true,
     oneofs: true
   };
-
 
   // accepts and array of Buffers or strings (truple) [ rootCerts, cert_chain, private_key ] 
   // or it can create an insecure connection if nothing is passed
@@ -139,7 +79,6 @@
 
 
   try {
-
     // you can then call the login function for the loginService :)
     // it will return a promise with the data or it Will throw an RPCError with code and details.
     const data = await loginService.login({ username: "JohnDoe", password: "awesomeSecretPassword" });
