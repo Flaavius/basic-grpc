@@ -4,8 +4,8 @@ import {
   credentials, 
   ChannelCredentials 
 } from 'grpc';
-import { loadSync } from "@grpc/proto-loader";
-import { SSLCred } from '.';
+import { loadSync, Options } from "@grpc/proto-loader";
+import { SSLCred, protoLoaderOptions } from '.';
 import { readFileSync } from 'fs';
 
 export const createClientCreds = (ssl: SSLCred = undefined): ChannelCredentials => {
@@ -31,8 +31,9 @@ export interface IClientService {
   packageName: string,
   serviceName: string,
   protoPath: string;
-  ssl: ChannelCredentials;
-  calls: any;
+  calls: string[];
+  options?: Options;
+  credentials?: ChannelCredentials;
 }
 
 export const createClient = <K extends {}>(service: IClientService): K => {
@@ -42,22 +43,15 @@ export const createClient = <K extends {}>(service: IClientService): K => {
       protoPath,
       port,
       url,
-      ssl,
-      calls
+      calls,
+      options = protoLoaderOptions,
+      credentials = createClientCreds()
     } = service;
 
-    const packageDefinition = loadSync(
-      protoPath,
-      {
-        keepCase: true,
-        longs: String,
-        enums: String,
-        defaults: true,
-        oneofs: true
-      });
+    const packageDefinition = loadSync(protoPath, options);
 
     const protoFile = loadPackageDefinition(packageDefinition) as any;
-    var client = new protoFile[packageName][serviceName](`${url}:${port}`, ssl);
+    var client = new protoFile[packageName][serviceName](`${url}:${port}`, credentials);
 
     return calls.reduce((total: any, call: any) => {
       return {

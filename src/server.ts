@@ -1,4 +1,4 @@
-import { loadSync } from "@grpc/proto-loader";
+import { loadSync, Options } from "@grpc/proto-loader";
 
 import {
   loadPackageDefinition,
@@ -8,7 +8,7 @@ import {
 
 import { join } from "path";
 import { readFileSync } from "fs";
-import { SSLCred } from ".";
+import { SSLCred, protoLoaderOptions } from ".";
 
 export class RPCError extends Error {
   public readonly code: number;
@@ -20,13 +20,11 @@ export class RPCError extends Error {
   }
 }
 
-export interface IProtoService {
+export interface IProtoService<T extends {} = {}> {
   protoFile: string;
   packageName: string;
   serviceName: string;
-  hooks: {
-    [key: string]: any;
-  }
+  handlers: T;
 }
 
 export interface ISetup {
@@ -60,21 +58,13 @@ export const createServerCreds = (ssl: SSLCred = undefined): ServerCredentials =
   );
 };
 
-
-
-const loadProtoFiles = ({ services = [], protoRoot = "" }: ISetup, server: Server) => {
-  services.forEach(({ protoFile, packageName, serviceName, hooks }) => {
-    const protoBuf = loadSync(join(protoRoot, protoFile), {
-      keepCase: true,
-      longs: String,
-      enums: String,
-      defaults: true,
-      oneofs: true
-    });
+const loadProtoFiles = ({ services = [], protoRoot = "" }: ISetup, server: Server, options: Options) => {
+  services.forEach(({ protoFile, packageName, serviceName, handlers }) => {
+    const protoBuf = loadSync(join(protoRoot, protoFile), options);
 
     const orderService = loadPackageDefinition(protoBuf) as any;
 
-    const newHooks = Object.entries(hooks).reduce((total, current) => {
+    const newHooks = Object.entries(handlers).reduce((total, current) => {
       const [key, value] = current as [string, (data: { request: any }) => Promise<any>];
       return {
         ...total,
@@ -92,13 +82,24 @@ const loadProtoFiles = ({ services = [], protoRoot = "" }: ISetup, server: Serve
   });
 }
 
-
-  
-  
-export const createServer = (setup: ISetup, domain: string, cred?: ServerCredentials): Server => {
-  const server = new Server();
-  loadProtoFiles(setup, server);
-  server.bind(domain, cred || createServerCreds());
-  return server;
+export interface ICreateServer {
+  gRPCSetup: ISetup;
+  domain: string;
+  options?: Options | undefined;
+  credentials?: ServerCredentials | undefined;
 }
 
+
+export const createServer = (data: ICreateServer): Server => {
+  const { 
+    gRPCSetup,
+    options = protoLoaderOptions,
+    domain,
+    credentials = createServerCreds()
+  } = data;
+  
+  const server = new Server();
+  loadProtoFiles(gRPCSetup, server, options);
+  server.bind(domain, credentials);
+  return server;
+}
