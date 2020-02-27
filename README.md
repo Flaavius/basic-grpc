@@ -1,5 +1,8 @@
 # A simple grpc Wrapper for nodejs
 
+*simple-grpc* is a wrapper over the grpc and @grpc/proto-loader 
+to make its implementation a bit simpler and have an express-like feel. 
+
 ## Usage:
 
   ### Server:
