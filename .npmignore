@@ -1,4 +1,6 @@
 src
 tests
 .maps
+.gitignore
+tsconfig.json
 package-lock.json
