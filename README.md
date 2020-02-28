@@ -157,4 +157,4 @@ its goal is to make the implementation very basic with minimal setup.
   }
   ```
 
-  #### check 
+  #### check this repo for an example: https://github.com/Flaavius/basic-grpc-example
